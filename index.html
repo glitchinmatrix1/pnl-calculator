@@ -226,6 +226,12 @@
   .breakdown-val.pos { color: var(--green); }
   .breakdown-val.neg { color: var(--red); }
 
+  .result-top-row{display:flex;align-items:center;gap:24px}
+  .pnl-block{flex:1}
+  .kraken-side{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .kraken-caption{font-size:11px;font-family:var(--mono);margin-top:2px}
+  .kraken-caption.profit{color:#4ade80}
+  .kraken-caption.loss{color:#f87171}
   .disclaimer {
     width: 100%;
     max-width: 700px;
@@ -351,12 +357,19 @@
 
 <!-- Result -->
 <div class="result-card" id="result-card">
-  <div id="kraken-img" style="display:none;margin-bottom:12px"></div>
-  <div class="result-label">Estimated P&L</div>
-  <div class="result-main">
-    <div class="result-amount neutral" id="result-amount">—</div>
-    <div class="result-pct neutral" id="result-pct"></div>
-    <span class="badge" id="result-badge" style="display:none"></span>
+  <div class="result-top-row">
+    <div class="pnl-block">
+      <div class="result-label">Estimated P&L</div>
+      <div class="result-main">
+        <div class="result-amount neutral" id="result-amount">—</div>
+        <div class="result-pct neutral" id="result-pct"></div>
+        <span class="badge" id="result-badge" style="display:none"></span>
+      </div>
+    </div>
+    <div class="kraken-side" id="kraken-side" style="display:none">
+      <div id="kraken-img"></div>
+      <div class="kraken-caption" id="kraken-caption"></div>
+    </div>
   </div>
   <div class="breakdown" id="breakdown" style="display:none">
     <div class="breakdown-row"><span class="breakdown-key">Entry Value</span><span class="breakdown-val" id="b-entry-val">—</span></div>
@@ -510,9 +523,15 @@ function calc() {
 
   const mainDec = contractType === 'linear' ? 2 : 6;
   document.getElementById('result-amount').textContent = (isProfit ? '+' : '') + fmt(netPnl, mainDec) + ' ' + currency;
-  const krakenEl = document.getElementById('kraken-img');
-  if (netPnl !== 0) { krakenEl.style.display = 'block'; krakenEl.innerHTML = isProfit ? KRAKEN_PROFIT : KRAKEN_LOSS; }
-  else { krakenEl.style.display = 'none'; }
+  const krakenSide = document.getElementById('kraken-side');
+  const krakenImg = document.getElementById('kraken-img');
+  const krakenCap = document.getElementById('kraken-caption');
+  if (netPnl !== 0) {
+    krakenSide.style.display = 'flex';
+    krakenImg.innerHTML = isProfit ? KRAKEN_PROFIT : KRAKEN_LOSS;
+    krakenCap.textContent = isProfit ? 'wen lambo ser' : 'have you tried getting a job';
+    krakenCap.className = 'kraken-caption ' + (isProfit ? 'profit' : 'loss');
+  } else { krakenSide.style.display = 'none'; }
   document.getElementById('result-amount').className = 'result-amount ' + cls;
 
   document.getElementById('result-pct').textContent = (isProfit ? '+' : '') + fmt(roi, 3) + '%';
@@ -549,7 +568,7 @@ function calc() {
 
 function setNeutral() {
   document.getElementById('result-amount').textContent = '—';
-  document.getElementById('kraken-img').style.display = 'none';
+  document.getElementById('kraken-side').style.display = 'none';
   document.getElementById('result-amount').className = 'result-amount neutral';
   document.getElementById('result-pct').textContent = '';
   document.getElementById('result-badge').style.display = 'none';
