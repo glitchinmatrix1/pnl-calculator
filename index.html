@@ -492,6 +492,17 @@ function fmt(n, decimals = 2) {
   return n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
+function smartDec(n) {
+  const abs = Math.abs(n);
+  if (abs === 0) return 2;
+  if (abs >= 100) return 2;
+  if (abs >= 1) return 4;
+  if (abs >= 0.01) return 6;
+  return 8;
+}
+function stripZeros(s) {
+  return s.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+}
 function calc() {
   const entry = parseFloat(document.getElementById('entry').value);
   const exit  = parseFloat(document.getElementById('exit').value);
@@ -540,7 +551,7 @@ function calc() {
   const cls = netPnl === 0 ? 'neutral' : isProfit ? 'profit' : 'loss';
   const currency = contractType === 'linear' ? 'USD' : settlementCoin;
 
-  const mainDec = contractType === 'linear' ? 2 : 6;
+  const mainDec = contractType === 'inverse' ? 6 : smartDec(netPnl);
   document.getElementById('result-amount').textContent = (isProfit ? '+' : '') + fmt(netPnl, mainDec) + ' ' + currency;
   const krakenSide = document.getElementById('kraken-side');
   const krakenImg = document.getElementById('kraken-img');
@@ -575,11 +586,11 @@ function calc() {
   const netCls   = netPnl >= 0 ? 'pos' : 'neg';
   const sym = contractType === 'linear' ? '$' : '';
   const sfx = contractType === 'linear' ? '' : ' ' + settlementCoin;
-  const dec = contractType === 'linear' ? 2 : 6;
-  const feeDec = contractType === 'linear' ? 6 : 6;
-  document.getElementById('b-gross').textContent = (grossPnl >= 0 ? '+' : '') + sym + fmt(grossPnl, dec) + sfx;
+  const dec = contractType === 'inverse' ? 6 : smartDec(netPnl);
+  const grossDec = contractType === 'inverse' ? 6 : smartDec(grossPnl);
+  document.getElementById('b-gross').textContent = (grossPnl >= 0 ? '+' : '') + sym + fmt(grossPnl, grossDec) + sfx;
   document.getElementById('b-gross').className = 'breakdown-val ' + grossCls;
-  document.getElementById('b-fees').textContent  = '-' + sym + fmt(fees, feeDec).replace(/\.?0+$/, '') + sfx;
+  document.getElementById('b-fees').textContent  = '-' + sym + stripZeros(fmt(fees, 6)) + sfx;
   document.getElementById('b-net').textContent   = (netPnl >= 0 ? '+' : '') + sym + fmt(netPnl, dec) + sfx;
   document.getElementById('b-net').className = 'breakdown-val ' + netCls;
   document.getElementById('b-roi').textContent   = (roi >= 0 ? '+' : '') + fmt(roi, 3) + '%';
