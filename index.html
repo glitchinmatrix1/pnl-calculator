@@ -576,9 +576,10 @@ function calc() {
   const sym = contractType === 'linear' ? '$' : '';
   const sfx = contractType === 'linear' ? '' : ' ' + settlementCoin;
   const dec = contractType === 'linear' ? 2 : 6;
+  const feeDec = contractType === 'linear' ? 6 : 6;
   document.getElementById('b-gross').textContent = (grossPnl >= 0 ? '+' : '') + sym + fmt(grossPnl, dec) + sfx;
   document.getElementById('b-gross').className = 'breakdown-val ' + grossCls;
-  document.getElementById('b-fees').textContent  = '-' + sym + fmt(fees, dec) + sfx;
+  document.getElementById('b-fees').textContent  = '-' + sym + fmt(fees, feeDec).replace(/\.?0+$/, '') + sfx;
   document.getElementById('b-net').textContent   = (netPnl >= 0 ? '+' : '') + sym + fmt(netPnl, dec) + sfx;
   document.getElementById('b-net').className = 'breakdown-val ' + netCls;
   document.getElementById('b-roi').textContent   = (roi >= 0 ? '+' : '') + fmt(roi, 3) + '%';
