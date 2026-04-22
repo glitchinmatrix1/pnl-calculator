@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Kraken Futures P&L Calculator</title>
+<title>Kraken Futures Calculator</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap');
 
@@ -246,6 +246,40 @@
   .kraken-caption{font-size:11px;font-family:var(--mono);margin-top:2px}
   .kraken-caption.profit{color:#4ade80}
   .kraken-caption.loss{color:#f87171}
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 0.5px solid var(--border2);
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .tab-btn {
+    font-size: 13px;
+    font-family: var(--mono);
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text3);
+    cursor: pointer;
+    margin-bottom: -1px;
+    transition: color .15s, border-color .15s;
+  }
+  .tab-btn.active { color: var(--purple); border-bottom-color: var(--purple); }
+  .tab-btn:hover:not(.active) { color: var(--text2); }
+  .tab-panel { display: none; width: 100%; max-width: 1100px; }
+  .tab-panel.active { display: block; }
+  .liq-result-card {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 12px;
+    padding: 24px;
+    border: 0.5px solid var(--border2);
+    background: var(--bg2);
+  }
+  .liq-price { font-size: 36px; font-weight: 500; font-family: var(--mono); color: var(--red); margin: 8px 0 4px; }
+  .liq-price.neutral { color: var(--text2); }
   .disclaimer {
     width: 100%;
     max-width: 100%;
@@ -286,14 +320,21 @@
     <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
   </div>
   <div class="header-text">
-    <h1>Futures P&L Calculator</h1>
+    <h1>Kraken Futures Calculator</h1>
     <p>kraken futures · illustrative purposes only</p>
   </div>
 </div>
 
-<div class="two-col">
+<div class="tabs">
+  <button class="tab-btn active" id="tab-pnl" onclick="switchTab('pnl')">Profit & Loss</button>
+  <button class="tab-btn" id="tab-liq" onclick="switchTab('liq')">Liquidation</button>
+</div>
+
+<!-- P&L Panel -->
+<div class="tab-panel active" id="panel-pnl">
+<div class="two-col" style="max-width:100%">
 <div class="col-left">
-<!-- Contract type + direction -->
+
 <div class="card">
   <div class="card-title">Contract Type</div>
   <div class="type-toggle" style="margin-bottom:20px">
@@ -316,10 +357,15 @@
   </div>
 </div>
 
-<!-- Prices + size -->
 <div class="card">
   <div class="card-title">Trade Details</div>
   <div class="grid">
+    <div class="field">
+      <label id="size-label">Position Size (Contracts)</label>
+      <div class="input-wrap">
+        <input type="number" id="size" placeholder="1" min="0" step="any" oninput="calc()"/>
+      </div>
+    </div>
     <div class="field">
       <label>Entry Price (USD)</label>
       <div class="input-wrap">
@@ -335,12 +381,6 @@
       </div>
     </div>
     <div class="field">
-      <label id="size-label">Position Size (Contracts)</label>
-      <div class="input-wrap">
-        <input type="number" id="size" placeholder="1" min="0" step="any" oninput="calc()"/>
-      </div>
-    </div>
-    <div class="field">
       <label>Leverage</label>
       <div class="input-wrap">
         <input type="number" id="leverage" value="10" min="1" max="100" step="1" oninput="calc()"/>
@@ -350,7 +390,6 @@
   </div>
 </div>
 
-<!-- Fees -->
 <div class="card">
   <div class="card-title">Fees</div>
   <div class="fees-row">
@@ -371,10 +410,11 @@
   </div>
 </div>
 
-<!-- Result -->
 <button class="reset-btn" onclick="reset()">↺ Reset</button>
+
 </div><!-- end col-left -->
 <div class="col-right">
+
 <div class="result-card" id="result-card">
   <div class="result-top-row">
     <div class="pnl-block">
@@ -400,66 +440,116 @@
   </div>
 </div>
 
-<button class="reset-btn" onclick="reset()">↺ Reset</button>
-
-
-<script>
-const KRAKEN_PROFIT = `<svg width="160" viewBox="0 0 260 280" xmlns="http://www.w3.org/2000/svg">
-  <ellipse cx="130" cy="120" rx="62" ry="70" fill="#7c5cfc"/>
-  <ellipse cx="110" cy="90" rx="18" ry="12" fill="#9b82fd" opacity=".4"/>
-  <circle cx="112" cy="105" r="11" fill="white"/>
-  <circle cx="148" cy="105" r="11" fill="white"/>
-  <circle cx="115" cy="107" r="6" fill="#1a1a2e"/>
-  <circle cx="151" cy="107" r="6" fill="#1a1a2e"/>
-  <circle cx="117" cy="105" r="2" fill="white"/>
-  <circle cx="153" cy="105" r="2" fill="white"/>
-  <path d="M112 122 Q130 140 148 122" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
-  <ellipse cx="103" cy="118" rx="9" ry="6" fill="#ff9999" opacity=".5"/>
-  <ellipse cx="157" cy="118" rx="9" ry="6" fill="#ff9999" opacity=".5"/>
-  <path d="M80 175 Q55 195 45 220 Q40 240 60 235 Q75 230 70 210" fill="none" stroke="#7c5cfc" stroke-width="14" stroke-linecap="round"/>
-  <path d="M95 182 Q80 210 75 240 Q73 258 90 255 Q105 252 100 232" fill="none" stroke="#9b82fd" stroke-width="12" stroke-linecap="round"/>
-  <path d="M115 185 Q110 215 112 245 Q113 262 128 260 Q140 258 138 240" fill="none" stroke="#7c5cfc" stroke-width="12" stroke-linecap="round"/>
-  <path d="M135 185 Q142 215 148 245 Q152 262 165 258 Q176 252 170 235" fill="none" stroke="#9b82fd" stroke-width="12" stroke-linecap="round"/>
-  <path d="M155 180 Q175 205 182 232 Q186 250 170 252 Q158 253 160 235" fill="none" stroke="#7c5cfc" stroke-width="12" stroke-linecap="round"/>
-  <path d="M172 172 Q202 190 215 215 Q222 235 205 238 Q192 240 190 220" fill="none" stroke="#9b82fd" stroke-width="12" stroke-linecap="round"/>
-  <circle cx="42" cy="60" r="22" fill="#fbbf24"/>
-  <text x="42" y="67" text-anchor="middle" font-size="18" fill="#78350f">$</text>
-  <text x="200" y="75" font-size="16" fill="#fbbf24">✦</text>
-  <text x="185" y="55" font-size="11" fill="#fbbf24">✦</text>
-  <text x="215" y="55" font-size="20" fill="#fbbf24">✦</text>
-</svg>`;
-
-const KRAKEN_LOSS = `<svg width="160" viewBox="0 0 260 280" xmlns="http://www.w3.org/2000/svg">
-  <ellipse cx="130" cy="120" rx="62" ry="70" fill="#374151"/>
-  <ellipse cx="150" cy="90" rx="18" ry="12" fill="#4b5563" opacity=".4"/>
-  <circle cx="112" cy="105" r="11" fill="white"/>
-  <circle cx="148" cy="105" r="11" fill="white"/>
-  <circle cx="112" cy="109" r="6" fill="#1a1a2e"/>
-  <circle cx="148" cy="109" r="6" fill="#1a1a2e"/>
-  <circle cx="114" cy="107" r="2" fill="white"/>
-  <circle cx="150" cy="107" r="2" fill="white"/>
-  <path d="M104 95 Q112 91 120 94" fill="none" stroke="#9ca3af" stroke-width="2.5" stroke-linecap="round"/>
-  <path d="M140 94 Q148 91 156 95" fill="none" stroke="#9ca3af" stroke-width="2.5" stroke-linecap="round"/>
-  <path d="M112 128 Q130 118 148 128" fill="none" stroke="#9ca3af" stroke-width="3" stroke-linecap="round"/>
-  <ellipse cx="106" cy="120" rx="4" ry="6" fill="#60a5fa" opacity=".8"/>
-  <ellipse cx="154" cy="120" rx="4" ry="6" fill="#60a5fa" opacity=".8"/>
-  <path d="M106 126 Q104 134 106 140" fill="none" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" opacity=".8"/>
-  <path d="M154 126 Q152 134 154 140" fill="none" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" opacity=".8"/>
-  <path d="M80 175 Q60 200 55 230 Q53 248 68 245" fill="none" stroke="#374151" stroke-width="14" stroke-linecap="round"/>
-  <path d="M95 182 Q85 215 82 242 Q81 258 95 255" fill="none" stroke="#4b5563" stroke-width="12" stroke-linecap="round"/>
-  <path d="M115 185 Q113 218 115 248 Q116 263 128 261" fill="none" stroke="#374151" stroke-width="12" stroke-linecap="round"/>
-  <path d="M135 185 Q140 218 142 248 Q143 263 155 260" fill="none" stroke="#4b5563" stroke-width="12" stroke-linecap="round"/>
-  <path d="M155 180 Q168 208 172 236 Q174 252 162 252" fill="none" stroke="#374151" stroke-width="12" stroke-linecap="round"/>
-  <path d="M172 172 Q195 195 202 222 Q206 240 194 242" fill="none" stroke="#4b5563" stroke-width="12" stroke-linecap="round"/>
-  <path d="M42 42 L42 72" stroke="#f87171" stroke-width="4" stroke-linecap="round"/>
-  <path d="M30 62 L42 76 L54 62" fill="none" stroke="#f87171" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="42" cy="35" r="16" fill="#f87171" opacity=".2" stroke="#f87171" stroke-width="1.5"/>
-  <text x="42" y="40" text-anchor="middle" font-size="14" fill="#f87171">-$</text>
-</svg>`;
-</script>
-<div class="disclaimer">This calculator is for illustrative purposes only. Results are not guaranteed.</div>
 </div><!-- end col-right -->
 </div><!-- end two-col -->
+</div><!-- end panel-pnl -->
+
+<!-- Liquidation Panel -->
+<div class="tab-panel" id="panel-liq">
+<div class="two-col" style="max-width:100%">
+<div class="col-left">
+
+<div class="card">
+  <div class="card-title">Contract Type</div>
+  <div class="type-toggle" style="margin-bottom:20px">
+    <button class="type-btn active" id="liq-btn-linear" onclick="liqSetType('linear')">Linear (USD Settled)</button>
+    <button class="type-btn" id="liq-btn-inverse" onclick="liqSetType('inverse')">Inverse (Coin Settled)</button>
+  </div>
+  <div class="card-title">Direction</div>
+  <div class="dir-toggle">
+    <button class="dir-btn long active" id="liq-btn-long" onclick="liqSetDir('long')">Long</button>
+    <button class="dir-btn short" id="liq-btn-short" onclick="liqSetDir('short')">Short</button>
+  </div>
+</div>
+
+<div class="card" id="liq-linear-inputs">
+  <div class="card-title">Trade Details</div>
+  <div class="grid">
+    <div class="field">
+      <label>Entry Price (USD)</label>
+      <div class="input-wrap">
+        <input type="number" id="liq-entry" placeholder="0.00" min="0" step="any" oninput="liqCalc()"/>
+        <span class="unit">$</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Maintenance Margin (%)</label>
+      <div class="input-wrap">
+        <input type="number" id="liq-mm" value="1" min="0" max="100" step="any" oninput="liqCalc()" class="has-unit"/>
+        <span class="unit">%</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Margin Equity (USD)</label>
+      <div class="input-wrap">
+        <input type="number" id="liq-equity" placeholder="0.00" min="0" step="any" oninput="liqCalc()"/>
+        <span class="unit">$</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Total Notional Size (USD)</label>
+      <div class="input-wrap">
+        <input type="number" id="liq-notional" placeholder="0.00" min="0" step="any" oninput="liqCalc()"/>
+        <span class="unit">$</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="liq-inverse-inputs" style="display:none">
+  <div class="card-title">Trade Details</div>
+  <div class="grid">
+    <div class="field">
+      <label>Entry Price (USD)</label>
+      <div class="input-wrap">
+        <input type="number" id="liq-inv-entry" placeholder="0.00" min="0" step="any" oninput="liqCalc()"/>
+        <span class="unit">$</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Maintenance Margin (%)</label>
+      <div class="input-wrap">
+        <input type="number" id="liq-inv-mm" value="1" min="0" max="100" step="any" oninput="liqCalc()" class="has-unit"/>
+        <span class="unit">%</span>
+      </div>
+    </div>
+    <div class="field">
+      <label># of Contracts</label>
+      <div class="input-wrap">
+        <input type="number" id="liq-contracts" placeholder="0" min="0" step="any" oninput="liqCalc()"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Balance</label>
+      <div class="input-wrap">
+        <input type="number" id="liq-margin" placeholder="0.00" min="0" step="any" oninput="liqCalc()"/>
+        <span class="unit">$</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="reset-btn" onclick="liqReset()">↺ Reset</button>
+
+</div><!-- end liq col-left -->
+<div class="col-right">
+
+<div class="liq-result-card">
+  <div class="result-label">Liquidation Price</div>
+  <div class="liq-price neutral" id="liq-result-price">—</div>
+  <div style="font-size:13px;color:var(--text3);font-family:var(--mono)" id="liq-result-sub"></div>
+  <div class="breakdown" id="liq-breakdown" style="display:none;margin-top:16px">
+    <div class="breakdown-row"><span class="breakdown-key">Entry Price</span><span class="breakdown-val" id="liq-b-entry">—</span></div>
+    <div class="breakdown-row"><span class="breakdown-key">Liq. Distance</span><span class="breakdown-val neg" id="liq-b-dist">—</span></div>
+    <div class="breakdown-row"><span class="breakdown-key">Distance %</span><span class="breakdown-val neg" id="liq-b-pct">—</span></div>
+    <div class="breakdown-row"><span class="breakdown-key">Maint. Margin %</span><span class="breakdown-val" id="liq-b-mm">—</span></div>
+  </div>
+</div>
+<div class="disclaimer">This calculator is for illustrative purposes only. Results are not guaranteed.</div>
+
+</div><!-- end liq col-right -->
+</div><!-- end liq two-col -->
+</div><!-- end panel-liq -->
 
 <script>
 let contractType = 'linear';
@@ -615,6 +705,106 @@ function reset() {
   setDir('long');
   setCoin('BTC');
   setNeutral();
+}
+
+// ── Tab switching ──
+function switchTab(t) {
+  ['pnl','liq'].forEach(id => {
+    document.getElementById('panel-'+id).classList.toggle('active', id === t);
+    document.getElementById('tab-'+id).classList.toggle('active', id === t);
+  });
+}
+
+// ── Liquidation state ──
+let liqType = 'linear';
+let liqDir  = 'long';
+
+function liqSetType(t) {
+  liqType = t;
+  document.getElementById('liq-btn-linear').classList.toggle('active', t === 'linear');
+  document.getElementById('liq-btn-inverse').classList.toggle('active', t === 'inverse');
+  document.getElementById('liq-linear-inputs').style.display  = t === 'linear'  ? '' : 'none';
+  document.getElementById('liq-inverse-inputs').style.display = t === 'inverse' ? '' : 'none';
+  liqCalc();
+}
+
+function liqSetDir(d) {
+  liqDir = d;
+  document.getElementById('liq-btn-long').classList.toggle('active', d === 'long');
+  document.getElementById('liq-btn-short').classList.toggle('active', d === 'short');
+  liqCalc();
+}
+
+function liqCalc() {
+  let liqPrice = null;
+
+  if (liqType === 'linear') {
+    const entry    = parseFloat(document.getElementById('liq-entry').value);
+    const mm       = parseFloat(document.getElementById('liq-mm').value) / 100;
+    const equity   = parseFloat(document.getElementById('liq-equity').value);
+    const notional = parseFloat(document.getElementById('liq-notional').value);
+    if (!entry || !notional || isNaN(mm) || isNaN(equity)) { liqSetNeutral(); return; }
+    if (liqDir === 'long') {
+      liqPrice = entry * ((1 + mm) - (equity / notional));
+    } else {
+      liqPrice = entry * ((1 - mm) + (equity / notional));
+    }
+  } else {
+    const entry     = parseFloat(document.getElementById('liq-inv-entry').value);
+    const mm        = parseFloat(document.getElementById('liq-inv-mm').value) / 100;
+    const contracts = parseFloat(document.getElementById('liq-contracts').value);
+    const margin    = parseFloat(document.getElementById('liq-margin').value);
+    if (!entry || !contracts || isNaN(mm) || isNaN(margin)) { liqSetNeutral(); return; }
+    if (liqDir === 'long') {
+      liqPrice = (contracts * (1 + mm)) / ((contracts / entry) + margin);
+    } else {
+      liqPrice = (-contracts / (1 + mm)) / ((-contracts / entry) + margin);
+    }
+  }
+
+  if (!liqPrice || liqPrice <= 0 || !isFinite(liqPrice)) { liqSetNeutral(); return; }
+
+  const entry = liqType === 'linear'
+    ? parseFloat(document.getElementById('liq-entry').value)
+    : parseFloat(document.getElementById('liq-inv-entry').value);
+  const mm = liqType === 'linear'
+    ? parseFloat(document.getElementById('liq-mm').value)
+    : parseFloat(document.getElementById('liq-inv-mm').value);
+
+  const dist = liqPrice - entry;
+  const pct  = (dist / entry) * 100;
+
+  const priceEl = document.getElementById('liq-result-price');
+  priceEl.textContent = '$' + fmt(liqPrice, smartDec(liqPrice));
+  priceEl.className = 'liq-price';
+
+  document.getElementById('liq-result-sub').textContent =
+    (pct >= 0 ? '+' : '') + fmt(pct, 2) + '% from entry';
+
+  document.getElementById('liq-breakdown').style.display = 'grid';
+  document.getElementById('liq-b-entry').textContent = '$' + fmt(entry, smartDec(entry));
+  document.getElementById('liq-b-dist').textContent  = (dist >= 0 ? '+' : '') + '$' + fmt(Math.abs(dist), smartDec(dist));
+  document.getElementById('liq-b-pct').textContent   = (pct >= 0 ? '+' : '') + fmt(pct, 3) + '%';
+  document.getElementById('liq-b-mm').textContent    = fmt(mm, 2) + '%';
+}
+
+function liqSetNeutral() {
+  document.getElementById('liq-result-price').textContent = '—';
+  document.getElementById('liq-result-price').className = 'liq-price neutral';
+  document.getElementById('liq-result-sub').textContent = '';
+  document.getElementById('liq-breakdown').style.display = 'none';
+}
+
+function liqReset() {
+  ['liq-entry','liq-equity','liq-notional','liq-inv-entry','liq-contracts','liq-margin'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('liq-mm').value = '1';
+  document.getElementById('liq-inv-mm').value = '1';
+  liqSetType('linear');
+  liqSetDir('long');
+  liqSetNeutral();
 }
 </script>
 </body>
