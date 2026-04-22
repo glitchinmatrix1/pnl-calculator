@@ -552,6 +552,59 @@
 </div><!-- end panel-liq -->
 
 <script>
+const KRAKEN_PROFIT = `<svg width="160" viewBox="0 0 260 280" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="130" cy="120" rx="62" ry="70" fill="#7c5cfc"/>
+  <ellipse cx="110" cy="90" rx="18" ry="12" fill="#9b82fd" opacity=".4"/>
+  <circle cx="112" cy="105" r="11" fill="white"/>
+  <circle cx="148" cy="105" r="11" fill="white"/>
+  <circle cx="115" cy="107" r="6" fill="#1a1a2e"/>
+  <circle cx="151" cy="107" r="6" fill="#1a1a2e"/>
+  <circle cx="117" cy="105" r="2" fill="white"/>
+  <circle cx="153" cy="105" r="2" fill="white"/>
+  <path d="M112 122 Q130 140 148 122" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="103" cy="118" rx="9" ry="6" fill="#ff9999" opacity=".5"/>
+  <ellipse cx="157" cy="118" rx="9" ry="6" fill="#ff9999" opacity=".5"/>
+  <path d="M80 175 Q55 195 45 220 Q40 240 60 235 Q75 230 70 210" fill="none" stroke="#7c5cfc" stroke-width="14" stroke-linecap="round"/>
+  <path d="M95 182 Q80 210 75 240 Q73 258 90 255 Q105 252 100 232" fill="none" stroke="#9b82fd" stroke-width="12" stroke-linecap="round"/>
+  <path d="M115 185 Q110 215 112 245 Q113 262 128 260 Q140 258 138 240" fill="none" stroke="#7c5cfc" stroke-width="12" stroke-linecap="round"/>
+  <path d="M135 185 Q142 215 148 245 Q152 262 165 258 Q176 252 170 235" fill="none" stroke="#9b82fd" stroke-width="12" stroke-linecap="round"/>
+  <path d="M155 180 Q175 205 182 232 Q186 250 170 252 Q158 253 160 235" fill="none" stroke="#7c5cfc" stroke-width="12" stroke-linecap="round"/>
+  <path d="M172 172 Q202 190 215 215 Q222 235 205 238 Q192 240 190 220" fill="none" stroke="#9b82fd" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="42" cy="60" r="22" fill="#fbbf24"/>
+  <text x="42" y="67" text-anchor="middle" font-size="18" fill="#78350f">$</text>
+  <text x="200" y="75" font-size="16" fill="#fbbf24">✦</text>
+  <text x="185" y="55" font-size="11" fill="#fbbf24">✦</text>
+  <text x="215" y="55" font-size="20" fill="#fbbf24">✦</text>
+</svg>`;
+
+const KRAKEN_LOSS = `<svg width="160" viewBox="0 0 260 280" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="130" cy="120" rx="62" ry="70" fill="#374151"/>
+  <ellipse cx="150" cy="90" rx="18" ry="12" fill="#4b5563" opacity=".4"/>
+  <circle cx="112" cy="105" r="11" fill="white"/>
+  <circle cx="148" cy="105" r="11" fill="white"/>
+  <circle cx="112" cy="109" r="6" fill="#1a1a2e"/>
+  <circle cx="148" cy="109" r="6" fill="#1a1a2e"/>
+  <circle cx="114" cy="107" r="2" fill="white"/>
+  <circle cx="150" cy="107" r="2" fill="white"/>
+  <path d="M104 95 Q112 91 120 94" fill="none" stroke="#9ca3af" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M140 94 Q148 91 156 95" fill="none" stroke="#9ca3af" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M112 128 Q130 118 148 128" fill="none" stroke="#9ca3af" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="106" cy="120" rx="4" ry="6" fill="#60a5fa" opacity=".8"/>
+  <ellipse cx="154" cy="120" rx="4" ry="6" fill="#60a5fa" opacity=".8"/>
+  <path d="M106 126 Q104 134 106 140" fill="none" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+  <path d="M154 126 Q152 134 154 140" fill="none" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+  <path d="M80 175 Q60 200 55 230 Q53 248 68 245" fill="none" stroke="#374151" stroke-width="14" stroke-linecap="round"/>
+  <path d="M95 182 Q85 215 82 242 Q81 258 95 255" fill="none" stroke="#4b5563" stroke-width="12" stroke-linecap="round"/>
+  <path d="M115 185 Q113 218 115 248 Q116 263 128 261" fill="none" stroke="#374151" stroke-width="12" stroke-linecap="round"/>
+  <path d="M135 185 Q140 218 142 248 Q143 263 155 260" fill="none" stroke="#4b5563" stroke-width="12" stroke-linecap="round"/>
+  <path d="M155 180 Q168 208 172 236 Q174 252 162 252" fill="none" stroke="#374151" stroke-width="12" stroke-linecap="round"/>
+  <path d="M172 172 Q195 195 202 222 Q206 240 194 242" fill="none" stroke="#4b5563" stroke-width="12" stroke-linecap="round"/>
+  <path d="M42 42 L42 72" stroke="#f87171" stroke-width="4" stroke-linecap="round"/>
+  <path d="M30 62 L42 76 L54 62" fill="none" stroke="#f87171" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="42" cy="35" r="16" fill="#f87171" opacity=".2" stroke="#f87171" stroke-width="1.5"/>
+  <text x="42" y="40" text-anchor="middle" font-size="14" fill="#f87171">-$</text>
+</svg>`;
+
 let contractType = 'linear';
 let direction = 'long';
 let settlementCoin = 'BTC';
