@@ -280,6 +280,7 @@
   }
   .liq-price { font-size: 36px; font-weight: 500; font-family: var(--mono); color: var(--red); margin: 8px 0 4px; }
   .liq-price.neutral { color: var(--text2); }
+  .liq-price.fully-collateralized { color: var(--green); }
   .disclaimer {
     width: 100%;
     max-width: 100%;
@@ -809,9 +810,14 @@ function liqCalc() {
     const margin    = parseFloat(document.getElementById('liq-margin').value);
     if (!entry || !contracts || isNaN(mm) || isNaN(margin)) { liqSetNeutral(); return; }
     if (liqDir === 'long') {
+      // Long: price falls to liq. margin + contracts*(1/entry - 1/P) = mm * contracts/P
+      // → P = contracts*(1+mm) / (contracts/entry + margin)
       liqPrice = (contracts * (1 + mm)) / ((contracts / entry) + margin);
     } else {
-      liqPrice = (-contracts / (1 + mm)) / ((-contracts / entry) + margin);
+      // Kraken inverse short: P = (contracts / (1 + mm)) / (contracts/entry - margin)
+      const denom = (contracts / entry) - margin;
+      if (denom <= 0) { liqSetFullyCollateralized(); return; }
+      liqPrice = (contracts / (1 + mm)) / denom;
     }
   }
 
@@ -839,6 +845,14 @@ function liqCalc() {
   document.getElementById('liq-b-dist').textContent  = (dist >= 0 ? '+' : '') + '$' + fmt(Math.abs(dist), smartDec(dist));
   document.getElementById('liq-b-pct').textContent   = (pct >= 0 ? '+' : '') + fmt(pct, 3) + '%';
   document.getElementById('liq-b-mm').textContent    = fmt(mm, 2) + '%';
+}
+
+function liqSetFullyCollateralized() {
+  const priceEl = document.getElementById('liq-result-price');
+  priceEl.textContent = '∞';
+  priceEl.className = 'liq-price fully-collateralized';
+  document.getElementById('liq-result-sub').textContent = 'Position fully collateralized — no liquidation price';
+  document.getElementById('liq-breakdown').style.display = 'none';
 }
 
 function liqSetNeutral() {
